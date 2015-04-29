@@ -19,6 +19,14 @@ namespace HttpFileProxy
             using( WebApp.Start( url ) )
             {
                 Console.WriteLine( "Service started on {0}", url );
+
+                Console.WriteLine();
+
+                Console.WriteLine( "Curl Example:" );
+                Console.WriteLine( "curl -X PUT -i -F form-data=@dump.rdb http://server.com:700/file?file=dump.rdb" );
+
+                Console.WriteLine();
+
                 Console.WriteLine( "Files will be get/put to {0}", FileController.Directory );
                 Console.WriteLine( "Press ENTER to stop." );
                 Console.ReadLine();
