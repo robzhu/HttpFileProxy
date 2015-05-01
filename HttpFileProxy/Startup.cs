@@ -37,7 +37,7 @@ namespace HttpFileProxy
             var config = new HttpConfiguration();
 
             UseJsonSerialization( config );
-            config.Routes.MapHttpRoute( DefaultApiRouteName, "{controller}/{id}", defaults: new { controller = "Root", id = RouteParameter.Optional } );
+            config.Routes.MapHttpRoute( DefaultApiRouteName, "{controller}", defaults: new { controller = "Root" } );
             config.MapHttpAttributeRoutes();
 
             config.EnableSwagger( c =>

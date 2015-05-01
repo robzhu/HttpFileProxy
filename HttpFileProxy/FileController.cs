@@ -1,18 +1,18 @@
-﻿using System.Net.Http;
+﻿using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
-using System.Web.Http.Description;
-using System.IO;
 
 namespace HttpFileProxy
 {
     /// <summary>
     /// Controller for file-related operations.
     /// </summary>
+    [RoutePrefix( "file" )]
     public class FileController : ApiController
     {
-        public static string Directory = "d:\\http_files\\";
+        public static string Directory = "c:\\http_files\\";
 
         /// <summary>
         /// Uploads a file to the server. If the file already exists, it will be overwritten.
@@ -20,6 +20,7 @@ namespace HttpFileProxy
         /// </summary>
         /// <param name="file">The name of the file to upload.</param>
         [HttpPut]
+        [Route( "{file}" )]
         public async Task<IHttpActionResult> UploadAsync( string file )
         {
             if( !Request.Content.IsMimeMultipartContent( "form-data" ) )
@@ -32,7 +33,12 @@ namespace HttpFileProxy
             return Ok( Directory + file );
         }
 
+        /// <summary>
+        /// Downloads the specified file.
+        /// </summary>
+        /// <param name="file">The name of the file to download.</param>
         [HttpGet]
+        [Route( "{file}" )]
         public async Task<IHttpActionResult> DownloadAsync( string file )
         {
             FileInfo fi = new FileInfo( Directory + file );
