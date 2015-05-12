@@ -16,7 +16,14 @@ namespace HttpFileProxy
 
         public FileResult( string filePath )
         {
-            if( filePath == null ) throw new ArgumentNullException( "filePath" );
+            if( filePath == null )
+            {
+                throw new ArgumentNullException( "filePath" );
+            }
+            if( !File.Exists( filePath ) )
+            {
+                throw new ArgumentException( "filePath does not specify a valid file" );
+            }
             _filePath = filePath;
         }
 
