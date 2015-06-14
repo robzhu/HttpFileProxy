@@ -48,17 +48,14 @@ namespace HttpFileProxy
             }
 
             MultipartMemoryStreamProvider provider = await Request.Content.ReadAsMultipartAsync();
-
             if( provider.Contents.Count != 2 )
             {
                 return BadRequest( "Request should contain exactly two pieces of content: parameters and data." );
             }
-
             var paramContent = provider.Contents[ 0 ];
             FileDefinition fileDef = JsonConvert.DeserializeObject<FileDefinition>( await paramContent.ReadAsStringAsync() );
 
             StreamContent fileContent = provider.Contents[ 1 ] as StreamContent;
-            var saveFileStreamProvider = new SaveLocalFileStreamProvider( Directory, fileDef.Name );
             var fileName = Directory + fileDef.Name;
             using( FileStream fs = new FileStream( fileName, FileMode.Create ) )
             {
