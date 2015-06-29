@@ -42,6 +42,7 @@ namespace HttpFileProxy
 
             config.EnableSwagger( c =>
                 {
+                    c.OperationFilter<AddFileParamTypes>();
                     c.IncludeXmlComments( "docs.xml" );
                     c.SingleApiVersion( "1.0", "Http File API" );
                 } )

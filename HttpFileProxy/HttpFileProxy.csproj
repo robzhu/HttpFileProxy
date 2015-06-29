@@ -73,6 +73,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddFileParamTypes.cs" />
     <Compile Include="FileDefinition.cs" />
     <Compile Include="HealthController.cs" />
     <Compile Include="FileResult.cs" />
