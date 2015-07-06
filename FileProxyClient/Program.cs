@@ -24,6 +24,12 @@ namespace FileProxyClient
 
         static async Task MainAsync()
         {
+            if( !File.Exists( SourceFileFullPath ) )
+            {
+                Console.WriteLine( "{0} does not exist. Please specify a valid source file for upload." );
+                return;
+            }
+
             var httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromHours( 2 ),

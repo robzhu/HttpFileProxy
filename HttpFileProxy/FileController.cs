@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -11,7 +13,7 @@ namespace HttpFileProxy
     /// <summary>
     /// Controller for file-related operations.
     /// </summary>
-    //[RoutePrefix( "file" )]
+    [RoutePrefix( "file" )]
     public class FileController : ApiController
     {
         public static string Directory = "c:\\http_files\\";
@@ -85,7 +87,7 @@ namespace HttpFileProxy
         /// </summary>
         /// <param name="file">The name of the file to download.</param>
         [HttpGet]
-        [Route( "file/{file}", Name = Route_Download )]
+        [Route( "{file}", Name = Route_Download )]
         public async Task<IHttpActionResult> DownloadAsync( string file )
         {
             FileInfo fi = new FileInfo( Directory + file );
@@ -94,6 +96,23 @@ namespace HttpFileProxy
                 return NotFound();
             }
             return new FileResult( fi.FullName );
+        }
+
+        /// <summary>
+        /// Gets all the files.
+        /// </summary>
+        [HttpGet]
+        public async Task<IHttpActionResult> ListFilesAsync()
+        {
+            var files = System.IO.Directory.GetFiles( Directory );
+            List<string> links = new List<string>();
+            foreach( var file in files )
+            {
+                var fileName = file.Split( '\\' ).Last();
+                var link = this.Url.Link( Route_Download, new { file = fileName} );
+                links.Add( link );
+            }
+            return Ok( links );
         }
     }
 }

@@ -23,7 +23,8 @@ namespace HttpFileProxy
                 Console.WriteLine();
 
                 Console.WriteLine( "Upload:" );
-                Console.WriteLine( "curl -X PUT -i -F form-data=@dump.rdb http://server.com:700/file/dump.rdb" );
+                Console.WriteLine( "curl -X PUT  -i -F form-data=@dump.rdb http://server.com:700/file/dump.rdb" );
+                Console.WriteLine( "curl -X POST -i -F form-data=@dump.rdb http://server.com:700/file" );
 
                 Console.WriteLine();
 
