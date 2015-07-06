@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace FileProxyClient
 {
@@ -15,26 +17,65 @@ namespace FileProxyClient
             MainAsync().Wait();
         }
 
+        const string SourceFile = "_log.txt";
+        const string SourceFolder = @"C:\temp\";
+        const string SourceFileFullPath = SourceFolder + SourceFile;
+        const string DownloadTarget = SourceFolder + "download.txt";
+
         static async Task MainAsync()
         {
-            var httpClient = new HttpClient();
-            var fileName = @"C:\logs\log-file.txt";     //replace with an actual file you want to upload
-            var url = "http://localhost:700/file";
+            var httpClient = new HttpClient
+            {
+                Timeout = TimeSpan.FromHours( 2 ),
+            };
 
+            var url = "http://localhost:700/file";
             var content = new MultipartFormDataContent();
 
-            var fileDefinitionContent = new StringContent( JsonConvert.SerializeObject( new
-            {
-                Name = "log-file.txt",          //this is the name of the file that will be saved on the server.
-            } ) );
-            content.Add( fileDefinitionContent, "json" );
-
-            var streamContent = new StreamContent( File.OpenRead( fileName ) );
+            var streamContent = new StreamContent( File.OpenRead( SourceFileFullPath ) );
             streamContent.Headers.Add( "Content-Type", "application/octet-stream" );
-            content.Add( streamContent, "file", fileName );
 
-            var response = await httpClient.PostAsync( url, content );
-            response.EnsureSuccessStatusCode();
+            content.Add( streamContent, "file", SourceFile );
+
+            try
+            {
+                var response = await httpClient.PostAsync( url, content );
+                response.EnsureSuccessStatusCode();
+
+                Console.WriteLine( "File upload successful." );
+
+                //try to download the file.
+                var location = response.Headers.GetValues( "Location" ).FirstOrDefault();
+                Console.WriteLine( "Attempting to download from {0}", location );
+
+                response = await httpClient.GetAsync( location );
+                response.EnsureSuccessStatusCode();
+
+
+                if( File.Exists( DownloadTarget ) )
+                {
+                    File.Delete( DownloadTarget );
+                }
+
+                using( Stream contentStream = await response.Content.ReadAsStreamAsync(),
+                       fileStream = new FileStream( DownloadTarget, FileMode.Create ) )
+                {
+                    await contentStream.CopyToAsync( fileStream );
+                }
+
+                Console.WriteLine( "File download successful: {0}", DownloadTarget );
+                Process.Start( SourceFolder );
+            }
+            catch( HttpRequestException ex )
+            {
+                Console.WriteLine( "An Http Request exception occured: " );
+                Console.WriteLine( ex.Message );
+                Console.WriteLine( "Is the service running?" );
+            }
+            finally
+            {
+                File.Delete( DownloadTarget );
+            }
         }
     }
 }

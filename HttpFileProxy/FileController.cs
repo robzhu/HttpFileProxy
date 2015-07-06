@@ -1,11 +1,10 @@
-﻿using System.Linq;
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Newtonsoft.Json;
 
 namespace HttpFileProxy
 {
@@ -37,42 +36,11 @@ namespace HttpFileProxy
             return Ok( Directory + fileName );
         }
 
-        ///// <summary>
-        ///// Uploads a file to the server with additional parameters expressed in multipart content.
-        ///// </summary>
-        //[HttpPost]
-        //public async Task<IHttpActionResult> AlternateUploadAsync()
-        //{
-        //    if( !Request.Content.IsMimeMultipartContent( "form-data" ) )
-        //    {
-        //        throw new HttpResponseException( Request.CreateResponse( HttpStatusCode.UnsupportedMediaType ) );
-        //    }
-
-        //    MultipartMemoryStreamProvider provider = await Request.Content.ReadAsMultipartAsync();
-        //    if( provider.Contents.Count != 2 )
-        //    {
-        //        return BadRequest( "Request should contain exactly two pieces of content: parameters and data." );
-        //    }
-        //    var paramContent = provider.Contents[ 0 ];
-        //    FileDefinition fileDef = JsonConvert.DeserializeObject<FileDefinition>( await paramContent.ReadAsStringAsync() );
-
-        //    StreamContent fileContent = provider.Contents[ 1 ] as StreamContent;
-        //    var fileName = Directory + fileDef.Name;
-        //    using( FileStream fs = new FileStream( fileName, FileMode.Create ) )
-        //    {
-        //        await fileContent.CopyToAsync( fs );
-        //        await fs.FlushAsync();
-        //        Console.WriteLine( "Successfully saved file: {0}", fileName );
-        //    }
-
-        //    return Ok( fileName );
-        //}
-
         /// <summary>
         /// Uploads a file to the server with additional parameters expressed in multipart content.
         /// </summary>
         [HttpPost]
-        public async Task<IHttpActionResult> AlternateUploadAsync()
+        public async Task<IHttpActionResult> AltUploadAsync()
         {
             if( !Request.Content.IsMimeMultipartContent( "form-data" ) )
             {
@@ -88,9 +56,14 @@ namespace HttpFileProxy
             StreamContent fileContent = provider.Contents[ 0 ] as StreamContent;
             var headers = fileContent.Headers;
 
-            var fileName = headers.ContentDisposition.FileName;
-            fileName = fileName.TrimStart( '\"' );
-            fileName = fileName.TrimEnd( '\"' );
+            var fileName = headers.ContentDisposition.FileNameStar;
+            if( string.IsNullOrEmpty( fileName ) )
+            {
+                fileName = headers.ContentDisposition.FileName;
+                fileName = fileName.TrimStart( '\"' );
+                fileName = fileName.TrimEnd( '\"' );
+            }
+
             string fullFileName = Directory + fileName;
 
             using( FileStream fs = new FileStream( fullFileName, FileMode.Create ) )
@@ -100,16 +73,19 @@ namespace HttpFileProxy
                 Console.WriteLine( "Successfully saved file: {0}", fullFileName );
             }
 
+            Process.Start( "explorer.exe", Path.GetDirectoryName( fullFileName ) );
+
             var text = File.ReadAllText( fullFileName );
-            return Ok( text );
+            return CreatedAtRoute( Route_Download, new { file = fileName }, text );
         }
 
+        const string Route_Download = "Route_Download";
         /// <summary>
         /// Downloads the specified file.
         /// </summary>
         /// <param name="file">The name of the file to download.</param>
         [HttpGet]
-        [Route( "file/{file}" )]
+        [Route( "file/{file}", Name = Route_Download )]
         public async Task<IHttpActionResult> DownloadAsync( string file )
         {
             FileInfo fi = new FileInfo( Directory + file );

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File upload example</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="stylesheets//styles.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript" src="scripts/bootstrap-filestyle.min.js"></script>
+    <script src="http://malsup.github.com/jquery.form.js"></script>
+
+    <script type="text/javascript">
+        $( document ).ready( function () {
+
+            if ( !String.prototype.format ) {
+                String.prototype.format = function () {
+                    var args = arguments;
+                    return this.replace( /{(\d+)}/g, function ( match, number ) {
+                        return typeof args[number] != 'undefined'
+                          ? args[number]
+                          : match
+                        ;
+                    } );
+                };
+            }
+
+            var options = {
+                url: 'http://localhost:700/file',
+                type: 'post',
+                success: function () { }
+            };
+
+            $( '#mainForm' ).submit( function()
+            {
+                $( this ).ajaxSubmit( options );
+
+                var fileStrings = $( '#fileName' ).val().split( '\\' );
+                var fileName = fileStrings.slice( -1 )[0];
+
+                var fileListItem = '<li><a href="{0}">{1}</a></li>'.format( 'http://localhost:700/file/' + fileName, fileName );
+                $( '#fileLinks' ).append( fileListItem );
+                return false;
+            } );
+        } );
+
+        
+    </script>
+</head>
+<body>
+    <h1>Web API file upload/download example</h1>
+
+    <form id="mainForm" name="upload-form" method="post" enctype="multipart/form-data" action="http://localhost:700/file">
+        <div style="overflow:auto;width:90%;">
+
+            <!-- This is the div that does the trick: -->
+            <div style="width:auto;">
+
+                <div style="display:inline-block;width:435px;">
+                    <input id="fileName" name="file1" type="file" class="filestyle" data-classbutton="btn btn-primary"
+                           data-buttonbefore="true"
+                           data-classicon="icon-plus" data-buttontext="Choose file...">
+                </div>
+
+                <div style="display:inline-block;width:auto;">
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <h2>You have uploaded the following files:</h2>
+    <div>
+        <ul id="fileLinks">
+        </ul>
+    </div>
+</body>
+</html>
